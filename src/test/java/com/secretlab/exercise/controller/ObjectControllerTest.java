@@ -1,5 +1,6 @@
 package com.secretlab.exercise.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -9,6 +10,12 @@ import com.secretlab.exercise.model.KeyValue;
 import com.secretlab.exercise.model.KeyValueHistory;
 import com.secretlab.exercise.repository.KeyValueHistoryRepository;
 import com.secretlab.exercise.repository.KeyValueRepository;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -256,5 +263,55 @@ class ObjectControllerTest {
         .andExpect(jsonPath("$.length()").value(2))
         .andExpect(jsonPath("$[?(@.alpha)].alpha").value("a2"))
         .andExpect(jsonPath("$[?(@.beta)].beta").value("b1"));
+  }
+
+  // ─── Concurrency ───────────────────────────────────────────────────────────
+
+  @Test
+  @DisplayName("POST /object — 50 concurrent writes produce sequential versions 1-50")
+  void store_50ConcurrentRequests_versionsAreSequential() throws Exception {
+    int count = 50;
+    ExecutorService executor = Executors.newFixedThreadPool(50);
+    CountDownLatch startGate = new CountDownLatch(1);
+    CountDownLatch done = new CountDownLatch(count);
+
+    for (int i = 0; i < count; i++) {
+      String v = "value" + i;
+      executor.submit(
+          () -> {
+            try {
+              startGate.await();
+              mockMvc
+                  .perform(
+                      post("/object")
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .content("{\"concurrentKey\": \"" + v + "\"}"))
+                  .andExpect(status().isOk());
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            } finally {
+              done.countDown();
+            }
+          });
+    }
+
+    startGate.countDown();
+    boolean finished = done.await(30, TimeUnit.SECONDS);
+    executor.shutdown();
+
+    assertThat(finished).as("All 50 requests should complete within 30 seconds").isTrue();
+
+    List<KeyValueHistory> entries =
+        keyValueRepository.findAll().stream()
+            .filter(e -> e.getStoreKey().equals("concurrentKey"))
+            .sorted(Comparator.comparingInt(KeyValueHistory::getVersion))
+            .toList();
+
+    assertThat(entries).hasSize(count);
+    for (int i = 0; i < count; i++) {
+      assertThat(entries.get(i).getVersion())
+          .as("Version at index %d should be %d", i, i + 1)
+          .isEqualTo(i + 1);
+    }
   }
 }

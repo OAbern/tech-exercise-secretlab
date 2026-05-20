@@ -11,6 +11,10 @@
         <Class name="com.secretlab.exercise.MvcApplication"/>
     </Match>
 
+    <Match>
+        <Class name="com.secretlab.exercise.common.SpringContextUtils"/>
+    </Match>
+
     <!--
       GlobalExceptionHandler deliberately catches java.lang.Exception so that
       every unhandled throwable produces a safe 500 response. This is the

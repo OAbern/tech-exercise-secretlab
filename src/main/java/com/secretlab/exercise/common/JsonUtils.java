@@ -28,8 +28,7 @@ public final class JsonUtils {
   }
 
   /**
-   * Serialises a Object to its JSON string representation
-   * if any exception, return Object.toString
+   * Serialises a Object to its JSON string representation if any exception, return Object.toString
    */
   public static String toJsonStringWithoutEx(Object obj) {
     if (obj == null) {
