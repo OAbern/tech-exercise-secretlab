@@ -20,7 +20,7 @@ spring:
     hibernate:
       ddl-auto: none        # schema managed by schema.sql, not Hibernate
     defer-datasource-initialization: true   # ensure schema.sql runs before JPA
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -30,4 +30,4 @@ server:
 
 logging:
   level:
-    org.hibernate.SQL: debug
+    org.hibernate.SQL: off

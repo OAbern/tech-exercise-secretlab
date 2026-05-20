@@ -1,4 +1,4 @@
-package com.secretlab.exercise.controller;
+package com.secretlab.exercise.config.aspect;
 
 import com.secretlab.exercise.model.vo.ErrorVO;
 import jakarta.validation.ConstraintViolationException;

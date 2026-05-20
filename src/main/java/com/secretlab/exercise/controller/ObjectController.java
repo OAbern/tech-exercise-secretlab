@@ -3,7 +3,7 @@ package com.secretlab.exercise.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.secretlab.exercise.common.JsonUtils;
 import com.secretlab.exercise.common.ValidationUtils;
-import com.secretlab.exercise.mapper.KeyValueMapper;
+import com.secretlab.exercise.convertor.KeyValueConvertor;
 import com.secretlab.exercise.model.dto.StoreRequest;
 import com.secretlab.exercise.model.vo.KeyValuePairVO;
 import com.secretlab.exercise.model.vo.KeyValueVO;
@@ -45,9 +45,11 @@ public class ObjectController {
      * JSON conversion is handled by {@link JsonUtils}.
      */
     @PostMapping
-    public ResponseEntity<KeyValueVO> store(@RequestBody Map<String, JsonNode> body) {
+    public ResponseEntity<KeyValueVO> store(
+            @RequestBody @NotNull(message = "body must not be null") @NotEmpty(message = "body must not be empty") Map<String, JsonNode> body) {
+
         StoreRequest request = checkAndBuildStoreRequest(body);
-        KeyValueVO vo = KeyValueMapper.INSTANCE.toVO(keyValueService.put(request));
+        KeyValueVO vo = KeyValueConvertor.INSTANCE.toVO(keyValueService.put(request));
         return ResponseEntity.ok().body(vo);
     }
 
@@ -55,7 +57,7 @@ public class ObjectController {
      * Validates the raw POST body and builds a {@link StoreRequest}.
      * {@link jakarta.validation.ConstraintViolationException} handled by GlobalExceptionHandler.
      */
-    StoreRequest checkAndBuildStoreRequest(@NotNull(message = "body must not be null") @NotEmpty(message = "body must not be empty") Map<String, JsonNode> body) {
+    private StoreRequest checkAndBuildStoreRequest(Map<String, JsonNode> body) {
         Map.Entry<String, JsonNode> first = body.entrySet().iterator().next();
         String key = first.getKey();
         JsonNode valueNode = first.getValue();
@@ -80,7 +82,7 @@ public class ObjectController {
      */
     @GetMapping("get_all_records")
     public List<KeyValuePairVO> listAll() {
-        return KeyValueMapper.INSTANCE.toPairVOList(keyValueService.getAllLatest());
+        return KeyValueConvertor.INSTANCE.toPairVOList(keyValueService.getAllLatest());
     }
 
     /**
@@ -89,14 +91,14 @@ public class ObjectController {
      * Response: { key, value, version, timestamp }
      */
     @GetMapping("/{key}")
-    public ResponseEntity<?> get(
+    public ResponseEntity<KeyValueVO> get(
             @PathVariable @NotBlank(message = "key must not be blank") String key,
             @RequestParam(required = false) @Positive(message = "timestamp must be a positive Unix epoch value") Long timestamp) {
 
         return (timestamp != null
                 ? keyValueService.getAtTimestamp(key, timestamp)
                 : keyValueService.getLatest(key))
-                .map(entry -> ResponseEntity.ok(KeyValueMapper.INSTANCE.toVO(entry)))
-                .orElseGet(() -> ResponseEntity.ok(null));
+                .map(entry -> ResponseEntity.ok(KeyValueConvertor.INSTANCE.toVO(entry)))
+                .orElseGet(() -> ResponseEntity.<KeyValueVO>ok().build());
     }
 }

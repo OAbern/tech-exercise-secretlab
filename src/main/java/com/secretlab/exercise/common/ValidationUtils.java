@@ -5,7 +5,7 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.Set;
 
 /**
-  *
+ * Utility methods for building validation exceptions in service/controller layers.
  */
 public final class ValidationUtils {
 

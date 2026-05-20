@@ -1,6 +1,5 @@
-package com.secretlab.exercise.mapper;
+package com.secretlab.exercise.convertor;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.secretlab.exercise.common.JsonUtils;
 import com.secretlab.exercise.model.KeyValue;
 import com.secretlab.exercise.model.KeyValueHistory;
@@ -15,23 +14,19 @@ import java.util.List;
 /**
  * MapStruct mapper between {@link KeyValueHistory} entity and response VOs.
  */
-@Mapper
-public interface KeyValueMapper {
+@Mapper(imports = {JsonUtils.class})
+public interface KeyValueConvertor {
 
-    KeyValueMapper INSTANCE = Mappers.getMapper(KeyValueMapper.class);
+    KeyValueConvertor INSTANCE = Mappers.getMapper(KeyValueConvertor.class);
 
     @Mapping(source = "storeKey", target = "key")
     @Mapping(source = "createdAt", target = "timestamp")
-    @Mapping(target = "value", expression = "java(parseValue(entry.getValue()))")
+    @Mapping(target = "value", expression = "java(JsonUtils.parseJson(entry.getValue()))")
     KeyValueVO toVO(KeyValueHistory entry);
 
     @Mapping(source = "storeKey", target = "key")
-    @Mapping(target = "value", expression = "java(parseValue(entry.getValue()))")
+    @Mapping(target = "value", expression = "java(JsonUtils.parseJson(entry.getValue()))")
     KeyValuePairVO toPairVO(KeyValue entry);
 
     List<KeyValuePairVO> toPairVOList(List<KeyValue> entries);
-
-    default JsonNode parseValue(String json) {
-        return JsonUtils.parseJson(json);
-    }
 }
