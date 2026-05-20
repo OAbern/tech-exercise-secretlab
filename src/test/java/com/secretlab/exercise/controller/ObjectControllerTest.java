@@ -165,9 +165,26 @@ class ObjectControllerTest {
     mockMvc
         .perform(get("/object/hero"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.key").value("hero"))
-        .andExpect(jsonPath("$.value").value("v2"))
-        .andExpect(jsonPath("$.version").value(2));
+        .andExpect(jsonPath("$").value("v2"));
+  }
+
+  @Test
+  @DisplayName("GET /object/{key} — returns stored JSON object as response body")
+  void getLatest_objectValue_returnsValueObject() throws Exception {
+    mockMvc
+        .perform(
+            post("/object")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"hero\": {\"name\": \"batman\", \"level\": 7}}"))
+        .andExpect(status().isOk());
+
+    mockMvc
+        .perform(get("/object/hero"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("batman"))
+        .andExpect(jsonPath("$.level").value(7))
+        .andExpect(jsonPath("$.key").doesNotExist())
+        .andExpect(jsonPath("$.value").doesNotExist());
   }
 
   @Test
@@ -193,14 +210,12 @@ class ObjectControllerTest {
     mockMvc
         .perform(get("/object/histkey").param("timestamp", String.valueOf(t1)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.version").value(1))
-        .andExpect(jsonPath("$.value").value("value1"));
+        .andExpect(jsonPath("$").value("value1"));
 
     mockMvc
         .perform(get("/object/histkey").param("timestamp", String.valueOf(t2)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.version").value(2))
-        .andExpect(jsonPath("$.value").value("value2"));
+        .andExpect(jsonPath("$").value("value2"));
   }
 
   @Test

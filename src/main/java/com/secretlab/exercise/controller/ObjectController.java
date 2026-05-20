@@ -85,10 +85,10 @@ public class ObjectController {
 
   /**
    * GET /object/{key} — latest value for the key. GET /object/{key}?timestamp=N — value the key
-   * held at Unix timestamp N (UTC). Response: { key, value, version, timestamp }
+   * held at Unix timestamp N (UTC). Response: value
    */
   @GetMapping("/{key}")
-  public ResponseEntity<KeyValueVO> get(
+  public ResponseEntity<JsonNode> get(
       @PathVariable @NotBlank(message = "key must not be blank") String key,
       @RequestParam(required = false)
           @Positive(message = "timestamp must be a positive Unix epoch value")
@@ -97,7 +97,7 @@ public class ObjectController {
     return (timestamp != null
             ? keyValueService.getAtTimestamp(key, timestamp)
             : keyValueService.getLatest(key))
-        .map(entry -> ResponseEntity.ok(KeyValueConvertor.INSTANCE.toVO(entry)))
-        .orElseGet(() -> ResponseEntity.<KeyValueVO>ok().build());
+        .map(entry -> ResponseEntity.ok(JsonUtils.parseJson(entry.getValue())))
+        .orElseGet(() -> ResponseEntity.ok().build());
   }
 }

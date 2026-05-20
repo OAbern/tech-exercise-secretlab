@@ -70,6 +70,7 @@ tasks.jacocoTestReport {
             fileTree(it) {
                 exclude(
                     "**/MvcApplication.class",
+                    "**/SpringContextUtils.class",
                     "**/model/vo/**",
                     "**/model/dto/**",
                     "**/dto/**",

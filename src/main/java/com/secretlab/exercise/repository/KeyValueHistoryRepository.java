@@ -12,7 +12,8 @@ public interface KeyValueHistoryRepository extends JpaRepository<KeyValueHistory
    * Entry that was current at the given Unix timestamp: Used only for point-in-time queries;
    * latest-value queries go to key_value.
    */
-  @Query("SELECT e FROM KeyValueHistory e WHERE e.storeKey = :key AND e.createdAt = :timestamp")
+  @Query(
+      "SELECT e FROM KeyValueHistory e WHERE e.storeKey = :key AND e.createdAt = :timestamp ORDER BY e.version DESC LIMIT 1")
   Optional<KeyValueHistory> findByKeyAtTimestamp(
       @Param("key") String key, @Param("timestamp") long timestamp);
 }
