@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+
+    <!-- MapStruct-generated mapper implementations (compile-time codegen) -->
+    <Match>
+        <Class name="~.*ConvertorImpl"/>
+    </Match>
+
+    <!-- Spring Boot entry point — no testable logic -->
+    <Match>
+        <Class name="com.secretlab.exercise.MvcApplication"/>
+    </Match>
+
+    <!--
+      GlobalExceptionHandler deliberately catches java.lang.Exception so that
+      every unhandled throwable produces a safe 500 response. This is the
+      standard @RestControllerAdvice pattern and is not a coding error.
+    -->
+    <Match>
+        <Class name="com.secretlab.exercise.config.aspect.GlobalExceptionHandler"/>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+    <!--
+      LoggingAspect uses RequestContextHolder.getRequestAttributes() with an
+      instanceof guard so a ClassCastException is impossible in normal MVC
+      execution. SpotBugs cannot see through the instanceof branch.
+    -->
+    <Match>
+        <Class name="com.secretlab.exercise.config.aspect.LoggingAspect"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST"/>
+    </Match>
+
+</FindBugsFilter>
