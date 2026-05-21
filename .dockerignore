@@ -1,0 +1,8 @@
+.git
+.gradle
+out
+.idea
+.cursor
+*.iml
+*.log
+README*.md
