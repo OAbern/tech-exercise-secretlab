@@ -125,6 +125,36 @@ tasks.withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {
     }
 }
 
+// ─── Git Hooks ───────────────────────────────────────────────────────────────
+
+val versionedGitHooksDir = layout.projectDirectory.dir("config/git-hooks")
+
+tasks.register("installGitHooks") {
+    group = "verification"
+    description = "Installs versioned Git hooks into this repository."
+
+    val localGitHooksDir = layout.projectDirectory.dir(".git/hooks")
+
+    inputs.dir(versionedGitHooksDir)
+    outputs.dir(localGitHooksDir)
+
+    onlyIf {
+        localGitHooksDir.asFile.parentFile?.exists() == true
+    }
+
+    doLast {
+        localGitHooksDir.asFile.mkdirs()
+
+        versionedGitHooksDir.asFile
+            .listFiles { file -> file.isFile }
+            ?.forEach { hook ->
+                val target = localGitHooksDir.file(hook.name).asFile
+                hook.copyTo(target, overwrite = true)
+                target.setExecutable(true)
+            }
+    }
+}
+
 // ─── SonarQube ──────────────────────────────────────────────────────────────
 // Run:  ./gradlew sonar -Dsonar.host.url=http://... -Dsonar.token=...
 //   or set env vars SONAR_HOST_URL and SONAR_TOKEN
