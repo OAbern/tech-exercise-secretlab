@@ -6,8 +6,8 @@ on:
       - main
 
 env:
-  AWS_REGION: ap-southeast-1
-  ECR_REPOSITORY: oabern-test
+  AWS_REGION: ap-southeast-1b
+  ECR_REPOSITORY: oabern/test
 
 jobs:
   deploy:
@@ -59,20 +59,20 @@ jobs:
           chmod 600 key.pem
 
           ssh -o StrictHostKeyChecking=no \
-            -i key.pem ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+            -i key.pem ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
 
-            aws ecr get-login-password --region ap-southeast-1 \
+            aws ecr get-login-password --region ap-southeast-1b \
             | docker login --username AWS --password-stdin \
-            $(aws sts get-caller-identity --query Account --output text).dkr.ecr.ap-southeast-1.amazonaws.com
+            $(aws sts get-caller-identity --query Account --output text).dkr.ecr.ap-southeast-1b.amazonaws.com
 
-            docker pull $(aws sts get-caller-identity --query Account --output text).dkr.ecr.ap-southeast-1.amazonaws.com/oabern-test:latest
+            docker pull $(aws sts get-caller-identity --query Account --output text).dkr.ecr.ap-southeast-1.amazonaws.com/oabern/test:latest
 
             docker stop myapp || true
             docker rm myapp || true
 
             docker run -d \
               --name myapp \
-              -p 8080:8080 \
-              $(aws sts get-caller-identity --query Account --output text).dkr.ecr.ap-southeast-1.amazonaws.com/oabern-test:latest
+              -p 80:80 \
+              $(aws sts get-caller-identity --query Account --output text).dkr.ecr.ap-southeast-1b.amazonaws.com/oabern/test:latest
 
           EOF
