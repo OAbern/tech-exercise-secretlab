@@ -8,10 +8,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+  private static final String RESOURCE_NOT_FOUND = "resource not found";
 
   /**
    * Handles constraint violations from: - @Validated on controller path/query params → violations
@@ -27,6 +31,12 @@ public class GlobalExceptionHandler {
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .collect(Collectors.joining("; "));
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorVO(message));
+  }
+
+  /** Handles missing paths and static resources. */
+  @ExceptionHandler({NoResourceFoundException.class, NoHandlerFoundException.class})
+  public ResponseEntity<ErrorVO> handleNotFound(Exception ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorVO(RESOURCE_NOT_FOUND));
   }
 
   /** Hand unexpected exception */

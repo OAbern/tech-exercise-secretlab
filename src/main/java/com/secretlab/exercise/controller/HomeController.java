@@ -1,13 +1,15 @@
 package com.secretlab.exercise.controller;
 
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 public class HomeController {
+
+  private static final String LATEST_MODIFIED_TIME = "2026-05-21 15:40:00";
 
   @GetMapping("/")
   public String home() {
-    return "redirect:/object/get_all_records";
+    return "Last Push Time : " + LATEST_MODIFIED_TIME;
   }
 }
